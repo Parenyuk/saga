@@ -1,45 +1,53 @@
-import {takeEvery, put, call, fork, spawn } from 'redux-saga/effects';
+import {actionChannel, all, apply, call, spawn, take} from 'redux-saga/effects';
+import loadBasicData from './initialSagas'
+import pageLoaderSaga from "./pageLoaderSaga";
 
-// async function getPeople() {
-//     const request = await fetch('https://swapi.dev/api/people');
-//     const data = await request.json();
-//     return data
-// }
+export function* fetchPlanets() {
+    const response = yield call(fetch, 'https://swapi.dev/api/planets', );
 
+    const data = yield apply(response, response.json)
 
-async function swapiGet(pattern) {
-    const request = await fetch(`https://swapi.dev/api/${pattern}`);
-    const data = await request.json();
-    return data
+    console.log('LOAD DATA BY CLICK', data)
 }
 
-export function* loadPeople() {
-    const people = yield call(swapiGet, 'people');
-    yield put({type: 'SET_PEOPLE', payload: people.results});
-    console.log('load planets');
-}
-export function* loadPlanets() {
-    const planets = yield call(swapiGet, 'planets');
-    yield put({type: 'SET_PLANETS', payload: planets.results});
-    console.log('load people');
+export function* loadOnAction() {
+    // yield takeLatest('LOAD_SOME_DATA', fetchPlanets)
+    // let task;
+    // let abortController = new AbortController();
+    //
+    // while(true) {
+    //     yield take('LOAD_SOME_DATA');
+    //     if(task) {
+    //         abortController.abort();
+    //         yield cancel(task);
+    //         abortController = new AbortController();
+    //     }
+    //    task = yield fork(fetchPlanets, abortController.signal);
+    // }
+    const channel = yield actionChannel('LOAD_SOME_DATA')
+    while(true) {
+        yield take(channel)
+
+        yield call(fetchPlanets)
+    }
 }
 
-export function* workerSaga () {
-//    const people = yield call(swapiGet, 'people');
-//    console.log('people:', people); 
-//    const planets = yield call(swapiGet, 'planets');
-//    console.log('planets:', planets);
-//    yield put({type: 'SET_PEOPLE', payload: people.results})
-//    yield put({type: 'SET_PLANETS', payload: planets.results})
-console.log('run parallel');
-yield spawn(loadPeople);
-yield spawn(loadPlanets);
-console.log('finish parallel');
-}
-export function* watchLoadDataSaga() {
-    yield takeEvery('LOAD_DATA', workerSaga)
-}
 
 export default function* rootSaga () {
-   yield  watchLoadDataSaga();
+
+const sagas = [loadBasicData, pageLoaderSaga, loadOnAction]
+
+const retrySaga = yield sagas.map(saga => {
+    return spawn(function*(){
+        while(true) {
+            try {
+                yield call(saga);
+                break
+            } catch(e) {
+                console.log(e)
+            }
+        }
+    })
+})
+yield all(retrySaga);
 } 

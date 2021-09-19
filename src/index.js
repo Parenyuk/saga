@@ -1,17 +1,35 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Switch, Route } from 'react-router-dom';
 import './index.css';
-import App from './App';
+import App from './pages/App';
 import {Provider} from 'react-redux';
-import store from './redux'
+import {ConnectedRouter} from "connected-react-router";
+import store from './redux';
+import Blog from './pages/Blog/index';
+import NotFound from './pages/NotFound'
+import { history } from './redux/reducers';
+
+
+
 
 ReactDOM.render(
-  <React.StrictMode>
     <Provider store={store}>
-       <App />
-    </Provider>
- 
-  </React.StrictMode>,
+      <ConnectedRouter history={history}>
+        <Switch>
+          <Route path='/' exact>
+          <App />
+          </Route>
+          <Route  path='/blog'>
+              <Blog />
+          </Route>
+          <Route  path='*'>
+            <NotFound />
+          </Route>
+        </Switch>
+         
+      </ConnectedRouter>
+    </Provider>,
   document.getElementById('root')
 );
 
