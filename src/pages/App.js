@@ -1,22 +1,18 @@
+import React from 'react';
+import PeopleTable from "../components/PeopleTable/PeopleTable";
 
-import '../App.css';
-import {useSelector, useDispatch} from 'react-redux'
-import {Link} from "react-router-dom";
+const App = () => {
 
-function App() {
+    return (
+        <>
+            <h1>
+                REDUX-SAGA
+            </h1>
+            <PeopleTable />
+        </>
 
-  const store = useSelector(store => store);
 
-  console.log(store);
+    );
+};
 
-  return (
-    <div className="App">
-    hi!
-      <div>
-        <Link to={'/blog'}>open blog</Link>
-      </div>
-    </div>
-  );
-}
-
-export default App; 
+export default App;
